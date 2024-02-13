@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Olink Data Analysis</title>
+    <style>
+        /* General styles */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+h1, h2 {
+    color: #007BFF;
+}
+
+/* Form styles */
+form {
+    max-width: 600px;
+    margin: 20px auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #333;
+}
+
+input[type="file"] {
+    display: block;
+    width: calc(100% - 22px); /* Adjusting for padding and border */
+    padding: 10px;
+    margin-bottom: 20px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    outline: none;
+}
+
+button {
+    background-color: #007BFF;
+    color: #fff;
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Result container styles */
+#result {
+    display: none;
+    max-width: 800px;
+    margin: 20px auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* List and table styles */
+ul, table {
+    margin-top: 20px;
+    padding: 0;
+    width: 100%;
+}
+
+ul {
+    list-style: none;
+}
+
+li {
+    margin-bottom: 10px;
+}
+
+th, td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+/* Download button styles */
+#downloadContainer {
+    margin-top: 20px;
+}
+
+#downloadButton {
+    background-color: #28a745;
+    color: #fff;
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#downloadButton:hover {
+    background-color: #218838;
+}
+
+    </style>
+</head>
+<body>
+    <h1>Olink Data Analysis</h1>
+
+    <form id="uploadForm" enctype="multipart/form-data">
+        <label for="file">Upload Olink Data (xlsx):</label>
+        <input type="file" id="file" accept=".xlsx" required>
+        <br>
+        <button type="button" onclick="uploadFile()">Submit</button>
+    </form>
+
+    <!-- Add a container for the download button -->
+    <div id="downloadContainer" style="display: none;">
+        <button id="downloadButton" onclick="downloadFile()">Download Output Excel File</button>
+    </div>
+
+    <div id="result">
+        <h2>Most Important Proteins:</h2>
+        <ul id="proteinList"></ul>
+
+        <h2>Predicted Protein Levels for the Next Date:</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Protein</th>
+                    <th>Date</th>
+                    <th>Predicted Level</th>
+                </tr>
+            </thead>
+            <tbody id="predictionBody"></tbody>
+        </table>
+    </div>
+
+    <script>
+        function uploadFile() {
+            const fileInput = document.getElementById('file');
+            const file = fileInput.files[0];
+
+            if (file) {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Show the download button
+                        document.getElementById('downloadContainer').style.display = 'block';
+                    } else {
+                        console.error('Error:', response.statusText);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            } else {
+                alert('Please select a file to upload.');
+            }
+        }
+
+        function downloadFile() {
+    fetch('/download')
+        .then(response => {
+            if (response.ok) {
+                return response.blob();
+            } else {
+                throw new Error('Failed to download file');
+            }
+        })
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'output.xlsx';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        })
+        .catch(error => {
+            console.error('Download error:', error);
+        });
+}
+    </script>
+
+
+<!-- <script>
+    // ... (previous JavaScript code)
+
+    // Function to fetch all proteins from all uploaded files
+    function fetchAllProteins() {
+        fetch('/all_proteins')
+            .then(response => response.json())
+            .then(data => {
+                displayAllProteins(data.all_proteins);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
+
+    // Function to display all proteins
+    function displayAllProteins(allProteins) {
+        const allProteinsContainer = document.getElementById('allProteins');
+        allProteinsContainer.innerHTML = '<h2>All Proteins:</h2>';
+
+        const ul = document.createElement('ul');
+        allProteins.forEach(protein => {
+            const li = document.createElement('li');
+            li.textContent = protein;
+            ul.appendChild(li);
+        });
+
+        allProteinsContainer.appendChild(ul);
+    }
+</script> -->
+
+<!-- Add a container for displaying all proteins -->
+<!-- <div id="allProteins"></div> -->
+        
+</body>
+</html>
